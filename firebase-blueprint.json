@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "property": {
+      "title": "Property",
+      "description": "Bahams Realty luxury property catalog item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "price": { "type": "number" },
+        "mode": { "type": "string", "enum": ["sale", "rent"] },
+        "type": { "type": "string" },
+        "location": { "type": "string" },
+        "address": { "type": "string" },
+        "bedrooms": { "type": "number" },
+        "bathrooms": { "type": "number" },
+        "sizeSqm": { "type": "number" },
+        "parkingSpaces": { "type": "number" },
+        "yearBuilt": { "type": "string" },
+        "furnished": { "type": "boolean" },
+        "status": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "description": { "type": "string" },
+        "features": { "type": "array" },
+        "images": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "price", "mode", "location", "address", "createdAt"]
+    },
+    "enquiry": {
+      "title": "Enquiry",
+      "description": "Inbound client enquiry, inspection request, or investor pack request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["inspection", "development", "contact", "service"] },
+        "name": { "type": "string", "maxLength": 120 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "subject": { "type": "string", "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 2000 },
+        "propertyOrProjectTitle": { "type": "string", "maxLength": 200 },
+        "propertyOrProjectId": { "type": "string", "maxLength": 100 },
+        "preferredDate": { "type": "string", "maxLength": 50 },
+        "preferredTime": { "type": "string", "maxLength": 50 },
+        "budget": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "contacted", "resolved"] }
+      },
+      "required": ["id", "type", "name", "phone", "subject", "details", "createdAt", "status"]
+    },
+    "landingConfig": {
+      "title": "LandingConfig",
+      "description": "Landing page CMS configuration, hero photos, headlines, and highlight images",
+      "type": "object",
+      "properties": {
+        "heroImage": { "type": "string" },
+        "heroHeadline": { "type": "string", "maxLength": 250 },
+        "heroSubline": { "type": "string", "maxLength": 500 },
+        "heroBadgeText": { "type": "string", "maxLength": 150 },
+        "aboutOfficeImage": { "type": "string" },
+        "whyBahamsImage": { "type": "string" },
+        "howItWorksImage": { "type": "string" },
+        "featuredHighlightTitle": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["heroImage", "heroHeadline", "heroSubline", "aboutOfficeImage"]
+    }
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": "property",
+      "description": "Catalog of luxury properties for sale and rent in Lagos"
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": "enquiry",
+      "description": "Inbound viewing appointments, investor packs, and consultation requests"
+    },
+    "/settings/{settingId}": {
+      "schema": "landingConfig",
+      "description": "Website CMS settings including hero photo and landing highlights"
+    }
+  }
+}

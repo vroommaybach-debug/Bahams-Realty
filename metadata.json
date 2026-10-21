@@ -1,0 +1,6 @@
+{
+  "name": "Bahams Realty - Premier Lagos Real Estate & Developments",
+  "description": "Full-service real estate agency in Lagos, Nigeria specializing in luxury residential sales, prime rentals, off-plan developments, and land acquisitions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
