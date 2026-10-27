@@ -104,7 +104,7 @@ export const SEOHead: React.FC = () => {
     upsertMetaTag('name', 'apple-mobile-web-app-title', 'Bahams Realty');
     upsertMetaTag('name', 'theme-color', '#0F5C4A');
 
-    // Update canonical URL (bahamasrealty.com.ng)
+    // Update canonical URL (bahamsrealty.com.ng)
     upsertLinkTag('canonical', baseMeta.canonicalUrl);
 
     // Update Schema.org JSON-LD script for Google Search & Sitelinks

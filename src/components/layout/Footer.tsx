@@ -31,7 +31,7 @@ export const Footer: React.FC = () => {
               <BahamsLogo variant="light" showTagline />
             </Link>
             <p className="text-sm text-neutral-400 max-w-sm leading-relaxed">
-              Full-service real estate advisory and development brokerage headquartered in Lekki Phase 1, Lagos, Nigeria (bahamasrealty.com.ng).
+              Full-service real estate advisory and development brokerage headquartered in Lekki Phase 1, Lagos, Nigeria (bahamsrealty.com.ng).
               Trusted by discerning Nigerian families, corporate institutions, and global diaspora investors across London, Houston, Toronto, and Dubai.
             </p>
             <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px] text-emerald-400/90 font-medium">

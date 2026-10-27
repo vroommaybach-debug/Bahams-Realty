@@ -184,7 +184,7 @@ export const Navbar: React.FC = () => {
                   E Kaabo · Lagos Advisory
                 </span>
                 <span className="text-[11px] font-semibold text-[#0F5C4A] bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
-                  bahamasrealty.com.ng
+                  bahamsrealty.com.ng
                 </span>
               </div>
 

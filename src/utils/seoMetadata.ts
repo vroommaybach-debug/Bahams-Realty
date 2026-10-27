@@ -1,4 +1,4 @@
-export const PRIMARY_DOMAIN = 'https://bahamasrealty.com.ng';
+export const PRIMARY_DOMAIN = 'https://bahamsrealty.com.ng';
 
 export interface RouteMetadata {
   title: string;
@@ -173,12 +173,12 @@ export function resolveRouteMetadata(pathname: string): RouteMetadata {
   return {
     title: 'Bahams Realty Lagos | Premier Properties, Developments & Advisory (RC: 1849204)',
     description:
-      'Premier real estate brokerage in Lagos, Nigeria (bahamasrealty.com.ng). Verified C of O & Governor’s Consent luxury homes, executive rentals, and off-plan developments in Ikoyi, VI, and Lekki.',
+      'Premier real estate brokerage in Lagos, Nigeria (bahamsrealty.com.ng). Verified C of O & Governor’s Consent luxury homes, executive rentals, and off-plan developments in Ikoyi, VI, and Lekki.',
     canonicalUrl: PRIMARY_DOMAIN,
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
     keywords:
-      'Bahams Realty, bahamasrealty.com.ng, Lagos real estate, Ikoyi properties, Victoria Island apartments, Lekki Phase 1 duplexes, Nigeria diaspora real estate',
+      'Bahams Realty, bahamsrealty.com.ng, Lagos real estate, Ikoyi properties, Victoria Island apartments, Lekki Phase 1 duplexes, Nigeria diaspora real estate',
     breadcrumbName: 'Home',
   };
 }
@@ -205,7 +205,7 @@ export function buildStructuredDataJsonLd(pathname: string) {
         description:
           'Full-service real estate brokerage and development advisory firm in Lagos, Nigeria specializing in verified residential sales, executive lettings, and off-plan developments.',
         telephone: '+234-916-714-9677',
-        email: 'advisory@bahamasrealty.com.ng',
+        email: 'advisory@bahamsrealty.com.ng',
         priceRange: '₦₦₦₦',
         address: {
           '@type': 'PostalAddress',
