@@ -5,16 +5,21 @@
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: #FAFAF8;
     color: #1A1A1A;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 }
 
-/* Custom scrollbar and subtle pulse */
+/* Custom animations & micro-interactions (compositor-friendly transform & opacity) */
 @keyframes subtle-pulse {
   0%, 100% {
     transform: scale(1);
@@ -26,13 +31,69 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .whatsapp-pulse {
   animation: subtle-pulse 3s infinite ease-in-out;
 }
 
+.animate-fadeIn {
+  animation: fadeIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Hide scrollbars on horizontal pill strips while preserving touch scroll */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .whatsapp-pulse {
+  .whatsapp-pulse,
+  .animate-fadeIn,
+  .animate-scaleUp,
+  .animate-slideUp {
     animation: none;
   }
 }
-

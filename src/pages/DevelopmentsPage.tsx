@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { DEVELOPMENTS_DATA } from '../data/mockData.ts';
 import { ProjectCard } from '../components/development/ProjectCard.tsx';
 import { SectionHeading } from '../components/common/SectionHeading.tsx';
 import { Development, DevelopmentStatus } from '../types/index.ts';
@@ -8,25 +7,17 @@ import {
   ShieldCheck,
   TrendingUp,
   Calculator,
-  ArrowRight,
   MessageCircle,
-  Percent,
-  DollarSign,
   Download,
   CheckCircle2,
   X,
-  FileText,
-  Clock,
-  Sparkles,
-  Phone,
-  Compass,
 } from 'lucide-react';
 import { formatNaira } from '../utils/formatters.ts';
 import { getWhatsAppUrl } from '../utils/whatsapp.ts';
 import { useData } from '../context/DataContext.tsx';
 
 export const DevelopmentsPage: React.FC = () => {
-  const { addEnquiry } = useData();
+  const { developments, addEnquiry } = useData();
   const [statusFilter, setStatusFilter] = useState<'all' | DevelopmentStatus>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
 
@@ -41,7 +32,6 @@ export const DevelopmentsPage: React.FC = () => {
   // Investment Calculator State
   const [calcBudget, setCalcBudget] = useState(250000000);
   const [calcLocation, setCalcLocation] = useState<'Victoria Island' | 'Ikoyi' | 'Lekki Phase 1' | 'Banana Island'>('Victoria Island');
-  const [calcHoldingYears, setCalcHoldingYears] = useState(3);
 
   // Yield calculations based on Lagos market benchmarks
   const yieldRate =
@@ -70,7 +60,7 @@ export const DevelopmentsPage: React.FC = () => {
     )} in ${calcLocation}. I would like to explore matching off-plan inventory, milestone schedules, and developer audited track records.`
   );
 
-  const filteredDevelopments = DEVELOPMENTS_DATA.filter((dev) => {
+  const filteredDevelopments = developments.filter((dev) => {
     if (statusFilter !== 'all' && dev.status !== statusFilter) return false;
     if (selectedLocation !== 'all' && dev.location !== selectedLocation) return false;
     return true;

@@ -1,19 +1,22 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
   Building2,
   Building,
   MessageCircle,
-  ShieldCheck,
+  Compass,
 } from 'lucide-react';
 import { getWhatsAppUrl, getGeneralWhatsAppMessage } from '../../utils/whatsapp.ts';
-import { useData } from '../../context/DataContext.tsx';
 
 export const MobileBottomNav: React.FC = () => {
-  const { enquiries } = useData();
+  const location = useLocation();
   const whatsappUrl = getWhatsAppUrl(getGeneralWhatsAppMessage());
-  const newLeadsCount = enquiries.filter((e) => e.status === 'new').length;
+
+  // Hide mobile public bottom bar when inside the private /admin route
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <nav
@@ -79,7 +82,26 @@ export const MobileBottomNav: React.FC = () => {
           )}
         </NavLink>
 
-        {/* 4. WhatsApp Quick Advisory */}
+        {/* 4. Advisory Services */}
+        <NavLink
+          to="/services"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center h-full transition-colors ${
+              isActive ? 'text-[#0F5C4A]' : 'text-neutral-500 hover:text-neutral-900'
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <Compass className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
+              <span className={`text-[10px] mt-1 font-medium ${isActive ? 'font-bold' : ''}`}>
+                Services
+              </span>
+            </>
+          )}
+        </NavLink>
+
+        {/* 5. WhatsApp Quick Advisory */}
         <a
           href={whatsappUrl}
           target="_blank"
@@ -90,34 +112,8 @@ export const MobileBottomNav: React.FC = () => {
           <div className="w-8 h-8 rounded-full bg-[#0F5C4A] text-white flex items-center justify-center shadow-xs">
             <MessageCircle className="w-4 h-4 fill-white text-white" />
           </div>
-          <span className="text-[10px] mt-0.5 font-bold text-[#0F5C4A]">Chat</span>
+          <span className="text-[10px] mt-0.5 font-bold text-[#0F5C4A]">WhatsApp</span>
         </a>
-
-        {/* 5. Admin Portal */}
-        <NavLink
-          to="/admin"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center h-full transition-colors relative ${
-              isActive ? 'text-[#0F5C4A]' : 'text-neutral-500 hover:text-neutral-900'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <div className="relative">
-                <ShieldCheck className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-                {newLeadsCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {newLeadsCount}
-                  </span>
-                )}
-              </div>
-              <span className={`text-[10px] mt-1 font-medium ${isActive ? 'font-bold' : ''}`}>
-                Admin
-              </span>
-            </>
-          )}
-        </NavLink>
       </div>
     </nav>
   );

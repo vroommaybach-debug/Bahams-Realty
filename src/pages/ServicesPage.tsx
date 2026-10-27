@@ -20,15 +20,15 @@ import {
   Scale,
   Award,
 } from 'lucide-react';
-import { SERVICES_DATA } from '../data/mockData.ts';
 import { SectionHeading } from '../components/common/SectionHeading.tsx';
+import { SafeImage } from '../components/common/SafeImage.tsx';
 import { getWhatsAppUrl, getServiceWhatsAppMessage } from '../utils/whatsapp.ts';
 import { formatNaira } from '../utils/formatters.ts';
 import { useData } from '../context/DataContext.tsx';
 
 export const ServicesPage: React.FC = () => {
   const location = useLocation();
-  const { addEnquiry } = useData();
+  const { services, addEnquiry } = useData();
 
   // Closing Cost Calculator State
   const [purchasePrice, setPurchasePrice] = useState(250000000);
@@ -128,10 +128,12 @@ export const ServicesPage: React.FC = () => {
         subtitle="Institutional rigor, deep market intelligence, and trusted transaction management across residential sales, prime lettings, and development advisory in Lagos."
       />
 
-      {/* Four Service Sections */}
+      {/* Dynamic Service Sections */}
       <div className="space-y-10">
-        {SERVICES_DATA.map((service, index) => {
-          const serviceWhatsAppUrl = getWhatsAppUrl(getServiceWhatsAppMessage(service.title));
+        {services.map((service, index) => {
+          const serviceWhatsAppUrl = getWhatsAppUrl(
+            service.whatsappMessage || getServiceWhatsAppMessage(service.title)
+          );
 
           return (
             <div
@@ -146,7 +148,7 @@ export const ServicesPage: React.FC = () => {
                   </div>
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold tracking-widest uppercase text-[#0F5C4A]">
-                      Service Pillar 0{index + 1}
+                      {service.categoryBadge || `Service Pillar 0${index + 1}`}
                     </span>
                     <h2 className="text-xl sm:text-2xl font-bold text-[#1A1A1A]">
                       {service.title}
@@ -157,14 +159,14 @@ export const ServicesPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => {
                       setActiveConsultationService(service.title);
                       setConsultSubmitted(false);
                     }}
-                    className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold uppercase tracking-wider rounded-md transition-colors"
+                    className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer"
                   >
                     Book Consultation
                   </button>
@@ -183,6 +185,16 @@ export const ServicesPage: React.FC = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-5 space-y-4">
+                  {service.image && (
+                    <div className="aspect-16/9 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 mb-3">
+                      <SafeImage
+                        src={service.image}
+                        alt={service.title}
+                        containerClassName="w-full h-full"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
                     Scope of Advisory
                   </h3>
@@ -190,7 +202,7 @@ export const ServicesPage: React.FC = () => {
                     {service.description}
                   </p>
                   <p className="text-xs text-neutral-500 leading-relaxed">
-                    Our team provides fiduciary representation designed to protect asset value, verify legal encumbrances, and minimize closing friction.
+                    Our team provides fiduciary representation designed to protect asset value, verify legal encumbrances at the Lagos State Land Registry, and minimize closing friction.
                   </p>
                 </div>
 

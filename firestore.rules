@@ -12,6 +12,18 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(propertyId);
     }
 
+    // Developments collection: Public read; write permitted for development management
+    match /developments/{developmentId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(developmentId);
+    }
+
+    // Services collection: Public read; write permitted for advisory services management
+    match /services/{serviceId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(serviceId);
+    }
+
     // Enquiries collection: Public create for site visitors submitting viewing / consultation requests; read/update for operational management
     match /enquiries/{enquiryId} {
       allow read: if true;

@@ -8,10 +8,23 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase.ts';
-import { Property, InboundEnquiry, LandingPageConfig } from '../types/index.ts';
-import { PROPERTIES_DATA, TRUST_STATS } from '../data/mockData.ts';
+import {
+  Property,
+  Development,
+  ServiceItem,
+  InboundEnquiry,
+  LandingPageConfig,
+} from '../types/index.ts';
+import {
+  PROPERTIES_DATA,
+  DEVELOPMENTS_DATA,
+  SERVICES_DATA,
+  TRUST_STATS,
+} from '../data/mockData.ts';
 
 const PROPERTIES_STORAGE_KEY = 'bahams_realty_properties_v1';
+const DEVELOPMENTS_STORAGE_KEY = 'bahams_realty_developments_v1';
+const SERVICES_STORAGE_KEY = 'bahams_realty_services_v1';
 const LANDING_STORAGE_KEY = 'bahams_realty_landing_v1';
 const ENQUIRIES_STORAGE_KEY = 'bahams_realty_enquiries_v1';
 const FAVORITES_STORAGE_KEY = 'bahams_realty_favorites_v1';
@@ -19,8 +32,8 @@ const FAVORITES_STORAGE_KEY = 'bahams_realty_favorites_v1';
 export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
   heroImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80',
   heroHeadline: 'Find Your Next Address in Lagos.',
-  heroSubline: 'Verified titles, institutional diligence, and trusted on-ground advisory for high-end residential sales, prime rentals, and landmark off-plan developments.',
-  heroBadgeText: 'Verified Lagos Properties & Developments',
+  heroSubline: 'Verified titles (C of O & Governor’s Consent), institutional diligence, and trusted on-ground advisory for prime residential sales, executive lettings, and landmark off-plan developments.',
+  heroBadgeText: 'E Kaabo · Verified Lagos Properties & Developments',
   aboutOfficeImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
   whyBahamsImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
   howItWorksImage: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
@@ -67,6 +80,18 @@ interface DataContextType {
   deleteProperty: (id: string) => void;
   resetPropertiesToDefault: () => void;
 
+  developments: Development[];
+  addDevelopment: (dev: Omit<Development, 'id'>) => Development;
+  updateDevelopment: (id: string, updates: Partial<Development>) => void;
+  deleteDevelopment: (id: string) => void;
+  resetDevelopmentsToDefault: () => void;
+
+  services: ServiceItem[];
+  addService: (service: Omit<ServiceItem, 'id'>) => ServiceItem;
+  updateService: (id: string, updates: Partial<ServiceItem>) => void;
+  deleteService: (id: string) => void;
+  resetServicesToDefault: () => void;
+
   landingConfig: LandingPageConfig;
   updateLandingConfig: (updates: Partial<LandingPageConfig>) => void;
   resetLandingConfig: () => void;
@@ -102,7 +127,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return PROPERTIES_DATA;
   });
 
-  // 2. Landing Page Config
+  // 2. Developments State
+  const [developments, setDevelopments] = useState<Development[]>(() => {
+    try {
+      const stored = localStorage.getItem(DEVELOPMENTS_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // Fallback
+    }
+    return DEVELOPMENTS_DATA;
+  });
+
+  // 3. Services State
+  const [services, setServices] = useState<ServiceItem[]>(() => {
+    try {
+      const stored = localStorage.getItem(SERVICES_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      // Fallback
+    }
+    return SERVICES_DATA;
+  });
+
+  // 4. Landing Page Config
   const [landingConfig, setLandingConfig] = useState<LandingPageConfig>(() => {
     try {
       const stored = localStorage.getItem(LANDING_STORAGE_KEY);
@@ -115,7 +166,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return DEFAULT_LANDING_CONFIG;
   });
 
-  // 3. Enquiries State
+  // 5. Enquiries State
   const [enquiries, setEnquiries] = useState<InboundEnquiry[]>(() => {
     try {
       const stored = localStorage.getItem(ENQUIRIES_STORAGE_KEY);
@@ -128,7 +179,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return SEED_ENQUIRIES;
   });
 
-  // 4. Favorites State
+  // 6. Favorites State
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -224,10 +275,66 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     );
 
+    // 4. Listen for Developments
+    const developmentsRef = collection(db, 'developments');
+    const unsubDevelopments = onSnapshot(
+      developmentsRef,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const list: Development[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push(docSnap.data() as Development);
+          });
+          setDevelopments(list);
+          try {
+            localStorage.setItem(DEVELOPMENTS_STORAGE_KEY, JSON.stringify(list));
+          } catch {
+            // ignore
+          }
+        }
+      },
+      (error) => {
+        try {
+          handleFirestoreError(error, OperationType.LIST, 'developments');
+        } catch {
+          // ignore
+        }
+      }
+    );
+
+    // 5. Listen for Services
+    const servicesRef = collection(db, 'services');
+    const unsubServices = onSnapshot(
+      servicesRef,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const list: ServiceItem[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push(docSnap.data() as ServiceItem);
+          });
+          setServices(list);
+          try {
+            localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(list));
+          } catch {
+            // ignore
+          }
+        }
+      },
+      (error) => {
+        try {
+          handleFirestoreError(error, OperationType.LIST, 'services');
+        } catch {
+          // ignore
+        }
+      }
+    );
+
     return () => {
       unsubEnquiries();
       unsubLanding();
       unsubProperties();
+      unsubDevelopments();
+      unsubServices();
     };
   }, []);
 
@@ -239,6 +346,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // ignore
     }
   }, [properties]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DEVELOPMENTS_STORAGE_KEY, JSON.stringify(developments));
+    } catch {
+      // ignore
+    }
+  }, [developments]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(services));
+    } catch {
+      // ignore
+    }
+  }, [services]);
 
   useEffect(() => {
     try {
@@ -264,7 +387,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [favorites]);
 
-  // Operations
+  // Property Operations
   const addProperty = (newPropData: Omit<Property, 'id' | 'createdAt'>): Property => {
     const id = `BR-${Math.floor(100 + Math.random() * 900)}`;
     const newProp: Property = {
@@ -274,7 +397,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     setProperties((prev) => [newProp, ...prev]);
 
-    // Persist to Firestore
     setDoc(doc(db, 'properties', id), newProp).catch((err) => {
       try {
         handleFirestoreError(err, OperationType.CREATE, `properties/${id}`);
@@ -317,11 +439,117 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(PROPERTIES_STORAGE_KEY);
   };
 
+  // Development Operations
+  const addDevelopment = (newDevData: Omit<Development, 'id'>): Development => {
+    const id = `DEV-${Math.floor(10 + Math.random() * 90)}`;
+    const newDev: Development = {
+      ...newDevData,
+      id,
+    };
+    setDevelopments((prev) => [newDev, ...prev]);
+
+    setDoc(doc(db, 'developments', id), newDev).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.CREATE, `developments/${id}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+
+    return newDev;
+  };
+
+  const updateDevelopment = (id: string, updates: Partial<Development>) => {
+    setDevelopments((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, ...updates } : d))
+    );
+
+    updateDoc(doc(db, 'developments', id), updates).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.UPDATE, `developments/${id}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
+  const deleteDevelopment = (id: string) => {
+    setDevelopments((prev) => prev.filter((d) => d.id !== id));
+
+    deleteDoc(doc(db, 'developments', id)).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.DELETE, `developments/${id}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
+  const resetDevelopmentsToDefault = () => {
+    setDevelopments(DEVELOPMENTS_DATA);
+    localStorage.removeItem(DEVELOPMENTS_STORAGE_KEY);
+  };
+
+  // Service Operations
+  const addService = (newSrvData: Omit<ServiceItem, 'id'>): ServiceItem => {
+    const slugId =
+      newSrvData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') || `srv-${Math.floor(100 + Math.random() * 900)}`;
+    const newSrv: ServiceItem = {
+      ...newSrvData,
+      id: slugId,
+    };
+    setServices((prev) => [...prev, newSrv]);
+
+    setDoc(doc(db, 'services', slugId), newSrv).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.CREATE, `services/${slugId}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+
+    return newSrv;
+  };
+
+  const updateService = (id: string, updates: Partial<ServiceItem>) => {
+    setServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+    );
+
+    updateDoc(doc(db, 'services', id), updates).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.UPDATE, `services/${id}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
+  const deleteService = (id: string) => {
+    setServices((prev) => prev.filter((s) => s.id !== id));
+
+    deleteDoc(doc(db, 'services', id)).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.DELETE, `services/${id}`);
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
+  const resetServicesToDefault = () => {
+    setServices(SERVICES_DATA);
+    localStorage.removeItem(SERVICES_STORAGE_KEY);
+  };
+
+  // Landing Config Operations
   const updateLandingConfig = (updates: Partial<LandingPageConfig>) => {
     const updated = { ...landingConfig, ...updates };
     setLandingConfig(updated);
 
-    // Persist to Firestore settings
     setDoc(doc(db, 'settings', 'landingConfig'), updated, { merge: true }).catch((err) => {
       try {
         handleFirestoreError(err, OperationType.WRITE, 'settings/landingConfig');
@@ -344,6 +572,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
+  // Enquiries Operations
   const addEnquiry = (enquiryData: Omit<InboundEnquiry, 'id' | 'createdAt' | 'status'>) => {
     const id = `ENQ-${Math.floor(1000 + Math.random() * 9000)}`;
     const newEnq: InboundEnquiry = {
@@ -354,7 +583,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     setEnquiries((prev) => [newEnq, ...prev]);
 
-    // Persist to Firestore
     setDoc(doc(db, 'enquiries', id), newEnq).catch((err) => {
       try {
         handleFirestoreError(err, OperationType.CREATE, `enquiries/${id}`);
@@ -411,6 +639,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateProperty,
         deleteProperty,
         resetPropertiesToDefault,
+        developments,
+        addDevelopment,
+        updateDevelopment,
+        deleteDevelopment,
+        resetDevelopmentsToDefault,
+        services,
+        addService,
+        updateService,
+        deleteService,
+        resetServicesToDefault,
         landingConfig,
         updateLandingConfig,
         resetLandingConfig,

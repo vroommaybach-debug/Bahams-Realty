@@ -22,7 +22,7 @@ import {
   Wifi,
   Sparkles,
 } from 'lucide-react';
-import { DEVELOPMENTS_DATA } from '../data/mockData.ts';
+import { useData } from '../context/DataContext.tsx';
 import { SafeImage } from '../components/common/SafeImage.tsx';
 import { ContactForm } from '../components/contact/ContactForm.tsx';
 import { formatNaira, formatSqm } from '../utils/formatters.ts';
@@ -58,7 +58,8 @@ const renderAmenityIcon = (iconName: string) => {
 
 export const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const development = DEVELOPMENTS_DATA.find((d) => d.id === id || d.slug === id);
+  const { developments } = useData();
+  const development = developments.find((d) => d.id === id || d.slug === id);
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 

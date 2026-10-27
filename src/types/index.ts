@@ -127,6 +127,8 @@ export interface ServiceItem {
   description: string;
   deliverables: string[];
   whatsappMessage: string;
+  image?: string;
+  categoryBadge?: string;
 }
 
 export interface FilterState {

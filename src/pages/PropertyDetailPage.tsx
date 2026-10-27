@@ -69,9 +69,11 @@ export const PropertyDetailPage: React.FC = () => {
   const whatsappUrl = getWhatsAppUrl(getPropertyWhatsAppMessage(property));
 
   // 3 similar properties in same location or same type
-  const similarProperties = PROPERTIES_DATA.filter(
-    (p) => p.id !== property.id && (p.location === property.location || p.type === property.type)
-  ).slice(0, 3);
+  const similarProperties = properties
+    .filter(
+      (p) => p.id !== property.id && (p.location === property.location || p.type === property.type)
+    )
+    .slice(0, 3);
 
   const handleShare = () => {
     if (navigator.share) {

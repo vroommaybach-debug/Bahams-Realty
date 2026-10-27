@@ -28,6 +28,48 @@
       },
       "required": ["id", "title", "price", "mode", "location", "address", "createdAt"]
     },
+    "development": {
+      "title": "Development",
+      "description": "Multi-unit off-plan or completed real estate development project in Lagos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "location": { "type": "string" },
+        "address": { "type": "string" },
+        "developer": { "type": "string" },
+        "status": { "type": "string", "enum": ["Off-plan", "Ready", "Selling Fast"] },
+        "startingPrice": { "type": "number" },
+        "overview": { "type": "string" },
+        "unitTypes": { "type": "array" },
+        "paymentPlan": { "type": "object" },
+        "masterplanImage": { "type": "string" },
+        "images": { "type": "array" },
+        "amenities": { "type": "array" },
+        "timeline": { "type": "array" },
+        "faqs": { "type": "array" },
+        "mapQuery": { "type": "string" },
+        "featured": { "type": "boolean" }
+      },
+      "required": ["id", "name", "location", "developer", "status", "startingPrice"]
+    },
+    "service": {
+      "title": "Service",
+      "description": "Advisory or brokerage service offering managed via Admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "tagline": { "type": "string" },
+        "description": { "type": "string" },
+        "deliverables": { "type": "array" },
+        "whatsappMessage": { "type": "string" },
+        "image": { "type": "string" },
+        "categoryBadge": { "type": "string" }
+      },
+      "required": ["id", "title", "tagline", "description", "deliverables"]
+    },
     "enquiry": {
       "title": "Enquiry",
       "description": "Inbound client enquiry, inspection request, or investor pack request",
@@ -71,6 +113,14 @@
     "/properties/{propertyId}": {
       "schema": "property",
       "description": "Catalog of luxury properties for sale and rent in Lagos"
+    },
+    "/developments/{developmentId}": {
+      "schema": "development",
+      "description": "Catalog of off-plan and completed real estate developments in Lagos"
+    },
+    "/services/{serviceId}": {
+      "schema": "service",
+      "description": "Catalog of advisory and brokerage services"
     },
     "/enquiries/{enquiryId}": {
       "schema": "enquiry",
