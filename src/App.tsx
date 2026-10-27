@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { UIProvider } from './context/UIContext.tsx';
 import { DataProvider } from './context/DataContext.tsx';
 import { Navbar } from './components/layout/Navbar.tsx';
@@ -13,6 +13,7 @@ import { WhatsAppButton } from './components/common/WhatsAppButton.tsx';
 import { InspectionModal } from './components/inspection/InspectionModal.tsx';
 import { MobileBottomNav } from './components/layout/MobileBottomNav.tsx';
 import { SEOHead } from './components/common/SEOHead.tsx';
+import { resolveSpaFallbackRoute } from './utils/adminAuth.ts';
 
 // Pages
 import { HomePage } from './pages/HomePage.tsx';
@@ -25,13 +26,19 @@ import { ServicesPage } from './pages/ServicesPage.tsx';
 import { ContactPage } from './pages/ContactPage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
 
-// Scroll to top on navigation helper
+// Scroll to top on navigation helper + SPA fallback route handler
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const fallbackRoute = resolveSpaFallbackRoute(search, hash);
+    if (fallbackRoute && fallbackRoute !== pathname) {
+      navigate(fallbackRoute, { replace: true });
+      return;
+    }
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, search, hash, navigate]);
 
   return null;
 }

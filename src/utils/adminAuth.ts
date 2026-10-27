@@ -124,3 +124,35 @@ export function setAdminSessionUnlocked(unlocked: boolean): void {
     // ignore storage errors
   }
 }
+
+/**
+ * Resolves fallback query or hash parameters (e.g., `/?admin=1`, `/?route=/admin`, or `/#/admin`)
+ * into a clean React Router path so static hosts without server rewrites can still open `/admin`
+ * or any sub-route without triggering a 404.
+ */
+export function resolveSpaFallbackRoute(search: string, hash: string): string | null {
+  try {
+    if (search) {
+      const params = new URLSearchParams(search);
+      const adminParam = params.get('admin');
+      if (adminParam === '1' || adminParam === 'true' || adminParam === '') {
+        return '/admin';
+      }
+      const routeParam = params.get('route') || params.get('redirect') || params.get('p');
+      if (routeParam && routeParam.startsWith('/')) {
+        return routeParam;
+      }
+    }
+
+    if (hash && hash.startsWith('#/')) {
+      const hashPath = hash.slice(1);
+      if (hashPath.length > 1) {
+        return hashPath;
+      }
+    }
+  } catch {
+    // ignore malformed URL params
+  }
+  return null;
+}
+

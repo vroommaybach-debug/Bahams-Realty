@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   verifyAdminGatePassword,
   validateAdminPasswordChange,
+  resolveSpaFallbackRoute,
   DEFAULT_ADMIN_GATE_SECRET,
 } from './adminAuth';
 
@@ -52,3 +53,13 @@ test('validateAdminPasswordChange validates current password, length, and confir
   assert.equal(validChange.valid, true);
   assert.equal(validChange.sanitizedPassword, 'BahamsNewPassword@2027');
 });
+
+test('resolveSpaFallbackRoute resolves ?admin=1, ?route=/admin, and #/admin cleanly', () => {
+  assert.equal(resolveSpaFallbackRoute('?admin=1', ''), '/admin');
+  assert.equal(resolveSpaFallbackRoute('?admin=true', ''), '/admin');
+  assert.equal(resolveSpaFallbackRoute('?route=/admin', ''), '/admin');
+  assert.equal(resolveSpaFallbackRoute('', '#/admin'), '/admin');
+  assert.equal(resolveSpaFallbackRoute('', '#/properties'), '/properties');
+  assert.equal(resolveSpaFallbackRoute('', ''), null);
+});
+

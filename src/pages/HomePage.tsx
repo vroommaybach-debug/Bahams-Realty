@@ -106,7 +106,6 @@ const EKO_CORRIDOR_INTELLIGENCE: LagosCorridorIntel[] = [
     locationFilter: 'Ikeja GRA',
     avgPricePerSqm: '₦850K – ₦1.4M / m²',
     typicalTitle: 'Lagos State C of O & Governor’s Consent',
-    annualTitle: 'Clean Root of Title',
     annualYield: '9.0% – 11.0% p.a.',
     capitalGrowth: '+24% YoY',
     buyerProfile: 'Aviation Executives, Mainland Industrialists & Diaspora',

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /properties
+Allow: /developments
+Allow: /services
+Allow: /about
+Allow: /contact
+Disallow: /admin
+
+Sitemap: https://bahamasrealty.com.ng/sitemap.xml
