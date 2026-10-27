@@ -46,10 +46,15 @@ import { SafeImage } from '../components/common/SafeImage.tsx';
 import { getWhatsAppUrl } from '../utils/whatsapp.ts';
 import {
   verifyAdminGatePassword,
+  validateAdminPasswordChange,
   isAdminSessionUnlocked,
   setAdminSessionUnlocked,
 } from '../utils/adminAuth.ts';
-import { processUploadedImageFile } from '../utils/imageUpload.ts';
+import {
+  processUploadedImageFile,
+  normalizeExternalImageUrl,
+  detectImageSourceType,
+} from '../utils/imageUpload.ts';
 import { AfrocentricWatermark } from '../components/common/AfrocentricPattern.tsx';
 
 // Curated high-resolution imagery presets for quick admin selection
@@ -129,11 +134,22 @@ export const AdminPage: React.FC = () => {
     updateEnquiryStatus,
     deleteEnquiry,
     clearEnquiries,
+    adminGatePassword,
+    updateAdminGatePassword,
+    resetAdminGatePasswordToDefault,
     isFirebaseConnected,
   } = useData();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('properties');
   const [uploadStatusMsg, setUploadStatusMsg] = useState<string>('');
+
+  // Admin Gate Password Change Form State
+  const [currentGatePassInput, setCurrentGatePassInput] = useState('');
+  const [newGatePassInput, setNewGatePassInput] = useState('');
+  const [confirmGatePassInput, setConfirmGatePassInput] = useState('');
+  const [showChangePasswords, setShowChangePasswords] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState('');
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState('');
 
   // Search & Filter states
   const [propertySearch, setPropertySearch] = useState('');
@@ -268,11 +284,11 @@ export const AdminPage: React.FC = () => {
   };
 
   // ============================================================================
-  // GATE AUTHENTICATION HANDLERS
+  // GATE AUTHENTICATION & PASSWORD CHANGE HANDLERS
   // ============================================================================
   const handleGateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (verifyAdminGatePassword(gatePasswordInput)) {
+    if (verifyAdminGatePassword(gatePasswordInput, adminGatePassword)) {
       setAdminSessionUnlocked(true);
       setIsUnlocked(true);
       setGateError('');
@@ -287,6 +303,33 @@ export const AdminPage: React.FC = () => {
     setIsUnlocked(false);
     setGatePasswordInput('');
     setGateError('');
+  };
+
+  const handleChangeGatePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordChangeError('');
+    setPasswordChangeSuccess('');
+
+    const validation = validateAdminPasswordChange({
+      currentInput: currentGatePassInput,
+      newPassword: newGatePassInput,
+      confirmPassword: confirmGatePassInput,
+      activeCustomPassword: adminGatePassword,
+    });
+
+    if (!validation.valid || !validation.sanitizedPassword) {
+      setPasswordChangeError(validation.error || 'Could not update password.');
+      return;
+    }
+
+    updateAdminGatePassword(validation.sanitizedPassword);
+    setCurrentGatePassInput('');
+    setNewGatePassInput('');
+    setConfirmGatePassInput('');
+    setPasswordChangeSuccess(
+      'Executive Gate Password updated and synced to Firebase Cloud Security!'
+    );
+    showUploadToast('Gate password updated in Firebase!');
   };
 
   // ============================================================================
@@ -437,7 +480,11 @@ export const AdminPage: React.FC = () => {
       .map((f) => f.trim())
       .filter(Boolean);
 
-    const allImages = [propImage, ...propExtraImages.filter(Boolean)];
+    const normalizedPrimary = normalizeExternalImageUrl(propImage);
+    const allImages = [
+      normalizedPrimary,
+      ...propExtraImages.map((img) => normalizeExternalImageUrl(img)).filter(Boolean),
+    ];
 
     if (editingPropertyId) {
       updateProperty(editingPropertyId, {
@@ -601,8 +648,12 @@ export const AdminPage: React.FC = () => {
             ? parsedMilestones
             : ['30% Initial Deposit', '40% Construction Milestones', '30% Handover'],
       },
-      masterplanImage: devMasterplanImage,
-      images: [devPrimaryImage, devMasterplanImage, CURATED_IMAGE_PRESETS[5].url],
+      masterplanImage: normalizeExternalImageUrl(devMasterplanImage),
+      images: [
+        normalizeExternalImageUrl(devPrimaryImage),
+        normalizeExternalImageUrl(devMasterplanImage),
+        CURATED_IMAGE_PRESETS[5].url,
+      ],
       amenities: [
         { label: 'Infinity Swimming Pool', icon: 'waves' },
         { label: '24/7 IPP Power Plant', icon: 'zap' },
@@ -713,7 +764,7 @@ export const AdminPage: React.FC = () => {
       whatsappMessage:
         srvWhatsappMsg.trim() ||
         `Hello Bahams Realty, I am interested in your ${srvTitle.trim()} service.`,
-      image: srvImage.trim() || undefined,
+      image: srvImage.trim() ? normalizeExternalImageUrl(srvImage) : undefined,
     };
 
     if (editingServiceId) {
@@ -734,14 +785,14 @@ export const AdminPage: React.FC = () => {
   const handleSaveLandingCMS = (e: React.FormEvent) => {
     e.preventDefault();
     updateLandingConfig({
-      heroImage: cmsHeroImage,
+      heroImage: normalizeExternalImageUrl(cmsHeroImage),
       heroHeadline: cmsHeroHeadline,
       heroSubline: cmsHeroSubline,
       heroBadgeText: cmsHeroBadge,
       featuredHighlightTitle: cmsFeaturedTitle,
-      aboutOfficeImage: cmsAboutImage,
-      whyBahamsImage: cmsWhyBahamsImage,
-      howItWorksImage: cmsHowItWorksImage,
+      aboutOfficeImage: normalizeExternalImageUrl(cmsAboutImage),
+      whyBahamsImage: normalizeExternalImageUrl(cmsWhyBahamsImage),
+      howItWorksImage: normalizeExternalImageUrl(cmsHowItWorksImage),
       trustStats: cmsTrustStats,
     });
     setCmsSuccessMessage('Landing page imagery, headlines, and statistics published live!');
@@ -1051,13 +1102,14 @@ export const AdminPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors whitespace-nowrap shrink-0 snap-start cursor-pointer ${
+          className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors whitespace-nowrap shrink-0 snap-start cursor-pointer flex items-center gap-1.5 ${
             activeTab === 'settings'
               ? 'bg-[#0F5C4A] text-white shadow-xs'
               : 'text-neutral-600 hover:text-neutral-900 bg-white border border-neutral-200'
           }`}
         >
-          Database & Backups
+          <Lock className="w-3.5 h-3.5" />
+          <span>Security & Backups</span>
         </button>
       </div>
 
@@ -2122,81 +2174,228 @@ export const AdminPage: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB 6: DATABASE & BACKUPS
+          TAB 6: SECURITY GATE PASSWORD & DATABASE BACKUPS
           ========================================================================= */}
       {activeTab === 'settings' && (
-        <div className="bg-white rounded-xl border border-[#E5E5E0] p-6 sm:p-8 space-y-6 shadow-xs max-w-3xl animate-fadeIn">
-          <div>
-            <h2 className="text-lg font-bold text-[#1A1A1A]">Data Storage & System Utilities</h2>
-            <p className="text-xs text-neutral-500">
-              Export JSON backups, restore seed catalogs for Properties, Developments, and Services, or lock the session.
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
+          {/* Card 1: Change Executive Gate Password (Synced with Firebase) */}
+          <div className="bg-white rounded-xl border border-[#E5E5E0] p-6 sm:p-8 space-y-5 shadow-xs">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-neutral-100">
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#0F5C4A]">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Firebase Cloud Security · settings/adminSecurity</span>
+                </span>
+                <h2 className="text-lg font-bold text-[#1A1A1A] mt-0.5">
+                  Change Executive Gate Password
+                </h2>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Update the password required to unlock <code className="font-mono">/admin</code>. Changes sync automatically with Firebase Firestore security rules.
+                </p>
+              </div>
+            </div>
+
+            {passwordChangeError && (
+              <div
+                role="alert"
+                className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{passwordChangeError}</span>
+              </div>
+            )}
+
+            {passwordChangeSuccess && (
+              <div
+                role="status"
+                className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{passwordChangeSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangeGatePassword} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="current-gate-pass"
+                  className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1"
+                >
+                  Current Gate Password
+                </label>
+                <input
+                  id="current-gate-pass"
+                  type={showChangePasswords ? 'text' : 'password'}
+                  required
+                  value={currentGatePassInput}
+                  onChange={(e) => setCurrentGatePassInput(e.target.value)}
+                  placeholder="Enter current gate password"
+                  className="w-full px-3.5 py-2.5 text-xs border border-neutral-300 rounded-md font-mono bg-[#FAFAF8] focus:bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="new-gate-pass"
+                    className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1"
+                  >
+                    New Gate Password
+                  </label>
+                  <input
+                    id="new-gate-pass"
+                    type={showChangePasswords ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={newGatePassInput}
+                    onChange={(e) => setNewGatePassInput(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    className="w-full px-3.5 py-2.5 text-xs border border-neutral-300 rounded-md font-mono bg-[#FAFAF8] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="confirm-gate-pass"
+                    className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1"
+                  >
+                    Confirm New Password
+                  </label>
+                  <input
+                    id="confirm-gate-pass"
+                    type={showChangePasswords ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={confirmGatePassInput}
+                    onChange={(e) => setConfirmGatePassInput(e.target.value)}
+                    placeholder="Repeat new password"
+                    className="w-full px-3.5 py-2.5 text-xs border border-neutral-300 rounded-md font-mono bg-[#FAFAF8] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="inline-flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showChangePasswords}
+                    onChange={(e) => setShowChangePasswords(e.target.checked)}
+                    className="rounded text-[#0F5C4A]"
+                  />
+                  <span>Show password characters</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetAdminGatePasswordToDefault();
+                    setPasswordChangeError('');
+                    setPasswordChangeSuccess(
+                      'Gate password restored to initial default credential.'
+                    );
+                    showUploadToast('Gate password restored to default.');
+                  }}
+                  className="text-[11px] font-semibold text-neutral-500 hover:text-neutral-900 underline cursor-pointer"
+                >
+                  Restore Initial Default Password
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 px-4 bg-[#0F5C4A] hover:bg-[#0B4638] text-white text-xs font-bold uppercase tracking-wider rounded-md shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                <span>Update Gate Password in Firebase</span>
+              </button>
+            </form>
           </div>
 
-          <div className="space-y-4 pt-2">
-            <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
-                  Download Full JSON Backup
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Export all properties, developments, services, CMS configurations, and enquiries.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleExportData}
-                className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Export Backup</span>
-              </button>
+          {/* Card 2: Data Storage, Universal Image Resolver & System Backups */}
+          <div className="bg-white rounded-xl border border-[#E5E5E0] p-6 sm:p-8 space-y-6 shadow-xs">
+            <div>
+              <h2 className="text-lg font-bold text-[#1A1A1A]">
+                Data Storage, Universal Image Links & System Utilities
+              </h2>
+              <p className="text-xs text-neutral-500">
+                Export JSON backups, restore seed catalogs for Properties, Developments, and Services, or lock the session.
+              </p>
             </div>
 
-            <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
-                  Restore All Default Seed Catalogs
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Reset Properties, Developments, and Services to the verified Lagos seed data.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  resetPropertiesToDefault();
-                  resetDevelopmentsToDefault();
-                  resetServicesToDefault();
-                  showUploadToast('All catalogs restored to default Lagos seed!');
-                }}
-                className="px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Reset All Seeds</span>
-              </button>
+            <div className="p-4 bg-emerald-50/60 rounded-lg border border-emerald-200 space-y-1.5">
+              <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">
+                Universal Image & Asset Engine Active
+              </h3>
+              <p className="text-xs text-emerald-900/80 leading-relaxed">
+                All upload fields across Properties, Developments, Services, and Site Media accept direct phone/desktop image files (<code className="font-mono">JPG, PNG, WEBP, HEIC, AVIF</code>) as well as external links from <strong>Google Drive</strong>, <strong>Pinterest</strong>, <strong>Dropbox</strong>, <strong>Imgur</strong>, and direct web URLs with automatic CDN optimization for mobile browsers.
+              </p>
             </div>
 
-            <div className="p-4 bg-red-50/50 rounded-lg border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-xs font-bold text-red-900 uppercase tracking-wider">
-                  Clear Inbound Enquiries
-                </h3>
-                <p className="text-xs text-red-600/80">
-                  Remove all current leads and viewing requests from the local cache.
-                </p>
+            <div className="space-y-4">
+              <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                    Download Full JSON Backup
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Export all properties, developments, services, CMS configurations, and enquiries.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleExportData}
+                  className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export Backup</span>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  clearEnquiries();
-                  showUploadToast('Inbound enquiries cleared.');
-                }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Clear Leads</span>
-              </button>
+
+              <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                    Restore All Default Seed Catalogs
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Reset Properties, Developments, and Services to the verified Lagos seed data.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetPropertiesToDefault();
+                    resetDevelopmentsToDefault();
+                    resetServicesToDefault();
+                    showUploadToast('All catalogs restored to default Lagos seed!');
+                  }}
+                  className="px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-300 text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Reset All Seeds</span>
+                </button>
+              </div>
+
+              <div className="p-4 bg-red-50/50 rounded-lg border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-red-900 uppercase tracking-wider">
+                    Clear Inbound Enquiries
+                  </h3>
+                  <p className="text-xs text-red-600/80">
+                    Remove all current leads and viewing requests from the local cache.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearEnquiries();
+                    showUploadToast('Inbound enquiries cleared.');
+                  }}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md transition-colors inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear Leads</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2443,9 +2642,16 @@ export const AdminPage: React.FC = () => {
                   required
                   value={propImage}
                   onChange={(e) => setPropImage(e.target.value)}
+                  onBlur={() => setPropImage(normalizeExternalImageUrl(propImage))}
                   className="w-full px-3 py-2 text-xs border border-neutral-300 rounded-md bg-white"
-                  placeholder="https://... or upload image file above"
+                  placeholder="Paste Google Drive, Pinterest, Dropbox, or image URL, or upload file above"
                 />
+                <div className="flex items-center justify-between text-[10px] text-neutral-500">
+                  <span>Supports Device Upload, Google Drive, Pinterest, Dropbox & Web URLs</span>
+                  <span className="font-semibold text-[#0F5C4A]">
+                    {detectImageSourceType(propImage)}
+                  </span>
+                </div>
               </div>
 
               <div>

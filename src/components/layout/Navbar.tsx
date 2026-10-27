@@ -9,12 +9,14 @@ import {
   MapPin,
   Trash2,
   ArrowRight,
-  Sparkles,
+  Calendar,
 } from 'lucide-react';
 import { getWhatsAppUrl, getGeneralWhatsAppMessage } from '../../utils/whatsapp.ts';
 import { useData } from '../../context/DataContext.tsx';
+import { useUI } from '../../context/UIContext.tsx';
 import { formatNaira } from '../../utils/formatters.ts';
 import { SafeImage } from '../common/SafeImage.tsx';
+import { BahamsLogo } from '../common/BahamsLogo.tsx';
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,6 +24,7 @@ export const Navbar: React.FC = () => {
   const [shortlistOpen, setShortlistOpen] = useState(false);
   const location = useLocation();
   const { properties, favorites, toggleFavorite } = useData();
+  const { openInspectionModal } = useUI();
 
   const savedProperties = properties.filter((p) => favorites.includes(p.id));
   const totalShortlistValue = savedProperties.reduce((acc, p) => acc + p.price, 0);
@@ -64,12 +67,16 @@ export const Navbar: React.FC = () => {
     { label: 'Contact', path: '/contact' },
   ];
 
-  const whatsappUrl = getWhatsAppUrl(getGeneralWhatsAppMessage());
-
   const shortlistWhatsAppMessage =
     savedProperties.length > 0
       ? `Hello Bahams Realty, I have shortlisted ${savedProperties.length} properties on your website:\n${savedProperties
-          .map((p, idx) => `${idx + 1}. ${p.title} (${p.location}) - ${formatNaira(p.price, p.mode === 'rent')} [Ref: ${p.id}]`)
+          .map(
+            (p, idx) =>
+              `${idx + 1}. ${p.title} (${p.location}) - ${formatNaira(
+                p.price,
+                p.mode === 'rent'
+              )} [Ref: ${p.id}]`
+          )
           .join('\n')}\n\nI would like to schedule viewings or receive due diligence files for these listings.`
       : getGeneralWhatsAppMessage();
 
@@ -83,19 +90,20 @@ export const Navbar: React.FC = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4 h-16 sm:h-20">
-            {/* Zone 1: Brand Wordmark (Single clean text element) */}
+          <div className="flex items-center justify-between gap-3 h-16 sm:h-20">
+            {/* Zone 1: Curated Bahams Realty Brand Emblem + Wordmark */}
             <Link
               to="/"
-              className="text-base sm:text-xl font-bold tracking-[0.18em] text-[#1A1A1A] uppercase whitespace-nowrap shrink-0 hover:text-[#0F5C4A] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5C4A] rounded"
+              aria-label="Bahams Realty Lagos Home"
+              className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5C4A] rounded-md"
             >
-              Bahams Realty
+              <BahamsLogo variant="dark" />
             </Link>
 
             {/* Zone 2: Navigation Links (Desktop - 5 primary public links) */}
             <nav
               aria-label="Primary Navigation"
-              className="hidden md:flex items-center gap-7 text-sm font-medium text-[#1A1A1A]/80"
+              className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-[#1A1A1A]/80"
             >
               {navLinks.map((link) => {
                 const isActive =
@@ -118,13 +126,13 @@ export const Navbar: React.FC = () => {
               })}
             </nav>
 
-            {/* Zone 3: Primary Action & Shortlist / Mobile Menu Toggle */}
+            {/* Zone 3: Shortlist Trigger, Book Inspection CTA & Mobile Menu Toggle (No redundant top WhatsApp icon) */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Interactive Shortlist Drawer Trigger */}
               <button
                 type="button"
                 onClick={() => setShortlistOpen(true)}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs border rounded-md transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs border rounded-md transition-all cursor-pointer ${
                   favorites.length > 0
                     ? 'text-neutral-900 border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80'
                     : 'text-neutral-600 hover:text-neutral-900 border-neutral-200 bg-white'
@@ -140,30 +148,18 @@ export const Navbar: React.FC = () => {
                   }`}
                 />
                 <span className="tabular-nums font-semibold">{favorites.length}</span>
-                <span className="hidden lg:inline text-[11px] font-medium">Saved</span>
+                <span className="hidden sm:inline text-[11px] font-medium">Saved</span>
               </button>
 
-              {/* Desktop WhatsApp Button */}
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold tracking-wider uppercase text-white bg-[#0F5C4A] hover:bg-[#0B4638] active:scale-[0.99] rounded-md transition-all whitespace-nowrap shadow-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5C4A]"
+              {/* Desktop Book Private Viewing CTA */}
+              <button
+                type="button"
+                onClick={() => openInspectionModal()}
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold tracking-wider uppercase text-white bg-[#0F5C4A] hover:bg-[#0B4638] active:scale-[0.99] rounded-md transition-all whitespace-nowrap shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F5C4A]"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp Us</span>
-              </a>
-
-              {/* Compact Mobile WhatsApp Icon */}
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Direct WhatsApp Advisory"
-                className="sm:hidden p-2 text-white bg-[#0F5C4A] hover:bg-[#0B4638] rounded-md shadow-xs transition-colors"
-              >
-                <MessageCircle className="w-5 h-5 fill-white text-white" />
-              </a>
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Book Viewing</span>
+              </button>
 
               {/* Mobile Hamburger Button */}
               <button
@@ -182,17 +178,29 @@ export const Navbar: React.FC = () => {
         {/* Full-screen Mobile Menu Drawer */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 top-16 z-50 md:hidden bg-black/40 backdrop-blur-xs flex flex-col justify-start">
-            <div className="bg-[#FAFAF8] border-b border-[#E5E5E0] shadow-2xl px-5 py-6 space-y-6 max-h-[calc(100vh-4rem)] overflow-y-auto animate-fadeIn">
+            <div className="bg-[#FAFAF8] border-b border-[#E5E5E0] shadow-2xl px-5 py-6 space-y-5 max-h-[calc(100vh-4rem)] overflow-y-auto animate-fadeIn">
               <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                   E Kaabo · Lagos Advisory
                 </span>
                 <span className="text-[11px] font-semibold text-[#0F5C4A] bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
-                  Ikoyi · VI · Lekki
+                  bahamasrealty.com.ng
                 </span>
               </div>
 
-              <nav className="flex flex-col space-y-1.5" aria-label="Mobile Menu Directory">
+              <nav className="flex flex-col space-y-1" aria-label="Mobile Menu Directory">
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    location.pathname === '/'
+                      ? 'bg-[#0F5C4A] text-white font-semibold shadow-xs'
+                      : 'text-neutral-800 hover:bg-neutral-100'
+                  }`}
+                >
+                  <span>Home</span>
+                  <span className="text-xs opacity-60">→</span>
+                </Link>
                 {navLinks.map((link) => {
                   const isActive =
                     location.pathname === link.path ||
@@ -202,7 +210,7 @@ export const Navbar: React.FC = () => {
                       key={link.path}
                       to={link.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-3 rounded-lg text-base font-medium transition-colors ${
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive
                           ? 'bg-[#0F5C4A] text-white font-semibold shadow-xs'
                           : 'text-neutral-800 hover:bg-neutral-100'
@@ -216,7 +224,7 @@ export const Navbar: React.FC = () => {
               </nav>
 
               {/* Quick Corridor Shortcuts on Mobile */}
-              <div className="pt-2 space-y-2">
+              <div className="pt-1 space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block">
                   Popular Lagos Corridors
                 </span>
@@ -236,7 +244,7 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quick Contact Desk */}
+              {/* Quick Contact & Private Inspection Action */}
               <div className="pt-4 border-t border-neutral-200 space-y-3">
                 <div className="space-y-1.5 text-xs text-neutral-600">
                   <div className="flex items-start gap-2">
@@ -254,15 +262,17 @@ export const Navbar: React.FC = () => {
                   </div>
                 </div>
 
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 text-xs font-bold tracking-wider uppercase text-white bg-[#0F5C4A] hover:bg-[#0B4638] rounded-lg transition-colors shadow-xs"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    openInspectionModal();
+                  }}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 text-xs font-bold tracking-wider uppercase text-white bg-[#0F5C4A] hover:bg-[#0B4638] rounded-lg transition-colors shadow-xs cursor-pointer"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Chat with Lagos Advisory on WhatsApp</span>
-                </a>
+                  <Calendar className="w-4 h-4" />
+                  <span>Schedule Private Property Viewing</span>
+                </button>
               </div>
             </div>
           </div>

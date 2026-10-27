@@ -29,7 +29,8 @@ export const OFFICE_DETAILS = {
   displayPhone: '+234 916 714 9677',
   // WhatsApp digits only without '+' or spaces
   whatsappNumber: '2349167149677',
-  email: 'enquiries@bahamsrealty.com',
+  email: 'enquiries@bahamasrealty.com.ng',
+  domain: 'bahamasrealty.com.ng',
   workingHours: {
     weekdays: 'Monday – Friday: 8:30 AM – 6:00 PM (WAT)',
     saturdays: 'Saturday: 10:00 AM – 4:00 PM (WAT)',

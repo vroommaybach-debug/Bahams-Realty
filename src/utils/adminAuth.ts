@@ -1,13 +1,102 @@
-const ADMIN_GATE_SECRET = 'BahamsRealty@2026';
+export const DEFAULT_ADMIN_GATE_SECRET = 'BahamsRealty@2026';
 export const ADMIN_SESSION_STORAGE_KEY = 'bahams_realty_admin_unlocked_v1';
+export const ADMIN_CUSTOM_PASSWORD_STORAGE_KEY = 'bahams_realty_admin_gate_custom_v1';
 
 /**
- * Validates the candidate password against the Bahams Realty executive gate password.
+ * Returns the currently active gate password (custom password if set in storage, otherwise the default).
+ */
+export function getActiveAdminGatePassword(customOverride?: string | null): string {
+  if (typeof customOverride === 'string' && customOverride.trim().length >= 6) {
+    return customOverride.trim();
+  }
+  try {
+    const stored = localStorage.getItem(ADMIN_CUSTOM_PASSWORD_STORAGE_KEY);
+    if (stored && stored.trim().length >= 6) {
+      return stored.trim();
+    }
+  } catch {
+    // ignore storage errors in non-browser environments
+  }
+  return DEFAULT_ADMIN_GATE_SECRET;
+}
+
+/**
+ * Persists a custom gate password locally so it is available immediately on load.
+ */
+export function setLocalCustomAdminGatePassword(newPassword: string | null): void {
+  try {
+    if (newPassword && newPassword.trim().length >= 6) {
+      localStorage.setItem(ADMIN_CUSTOM_PASSWORD_STORAGE_KEY, newPassword.trim());
+    } else {
+      localStorage.removeItem(ADMIN_CUSTOM_PASSWORD_STORAGE_KEY);
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
+
+/**
+ * Validates the candidate password against the active Bahams Realty executive gate password.
  * Never exposes or logs the password.
  */
-export function verifyAdminGatePassword(input: string): boolean {
+export function verifyAdminGatePassword(
+  input: string,
+  customPassword?: string | null
+): boolean {
   if (typeof input !== 'string') return false;
-  return input === ADMIN_GATE_SECRET || input.trim() === ADMIN_GATE_SECRET;
+  const trimmedInput = input.trim();
+  if (!trimmedInput) return false;
+
+  const activeSecret = getActiveAdminGatePassword(customPassword);
+  return input === activeSecret || trimmedInput === activeSecret;
+}
+
+/**
+ * Validates a password change request from inside the Admin Panel.
+ */
+export function validateAdminPasswordChange(params: {
+  currentInput: string;
+  newPassword: string;
+  confirmPassword: string;
+  activeCustomPassword?: string | null;
+}): { valid: boolean; error?: string; sanitizedPassword?: string } {
+  const { currentInput, newPassword, confirmPassword, activeCustomPassword } = params;
+
+  if (!verifyAdminGatePassword(currentInput, activeCustomPassword)) {
+    return {
+      valid: false,
+      error: 'Current gate password is incorrect.',
+    };
+  }
+
+  const trimmedNew = (newPassword || '').trim();
+  const trimmedConfirm = (confirmPassword || '').trim();
+
+  if (trimmedNew.length < 6) {
+    return {
+      valid: false,
+      error: 'New gate password must be at least 6 characters long.',
+    };
+  }
+
+  if (trimmedNew.length > 128) {
+    return {
+      valid: false,
+      error: 'New gate password must not exceed 128 characters.',
+    };
+  }
+
+  if (trimmedNew !== trimmedConfirm) {
+    return {
+      valid: false,
+      error: 'New password and confirmation do not match.',
+    };
+  }
+
+  return {
+    valid: true,
+    sanitizedPassword: trimmedNew,
+  };
 }
 
 /**

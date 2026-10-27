@@ -1,15 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, MessageCircle, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import {
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  ArrowUpRight,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { OFFICE_DETAILS } from '../../data/mockData.ts';
 import { getWhatsAppUrl, getGeneralWhatsAppMessage } from '../../utils/whatsapp.ts';
 import { AfrocentricDivider } from '../common/AfrocentricPattern.tsx';
+import { BahamsLogo } from '../common/BahamsLogo.tsx';
 
 export const Footer: React.FC = () => {
   const whatsappUrl = getWhatsAppUrl(getGeneralWhatsAppMessage());
 
   return (
-    <footer className="bg-[#141413] text-[#FAFAF8] border-t border-neutral-800 pt-12 pb-24 md:pb-12">
+    <footer className="bg-[#141413] text-[#FAFAF8] border-t border-neutral-800 pt-12 pb-36 md:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pb-10">
           <AfrocentricDivider variant="emerald" />
@@ -18,14 +27,11 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 pb-12 border-b border-neutral-800">
           {/* Column 1: Brand & Bio */}
           <div className="lg:col-span-2 space-y-4">
-            <Link
-              to="/"
-              className="text-xl font-bold tracking-[0.2em] text-[#FAFAF8] uppercase block hover:text-[#0F5C4A] transition-colors"
-            >
-              Bahams Realty
+            <Link to="/" className="inline-block">
+              <BahamsLogo variant="light" showTagline />
             </Link>
             <p className="text-sm text-neutral-400 max-w-sm leading-relaxed">
-              Full-service real estate advisory and development brokerage headquartered in Lekki Phase 1, Lagos, Nigeria.
+              Full-service real estate advisory and development brokerage headquartered in Lekki Phase 1, Lagos, Nigeria (bahamasrealty.com.ng).
               Trusted by discerning Nigerian families, corporate institutions, and global diaspora investors across London, Houston, Toronto, and Dubai.
             </p>
             <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px] text-emerald-400/90 font-medium">
@@ -67,17 +73,26 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/properties?location=Ikoyi" className="hover:text-white transition-colors">
+                <Link
+                  to="/properties?location=Ikoyi"
+                  className="hover:text-white transition-colors"
+                >
                   Old Ikoyi & Banana Island
                 </Link>
               </li>
               <li>
-                <Link to="/properties?location=Victoria%20Island" className="hover:text-white transition-colors">
+                <Link
+                  to="/properties?location=Victoria%20Island"
+                  className="hover:text-white transition-colors"
+                >
                   Victoria Island & Eko Atlantic
                 </Link>
               </li>
               <li>
-                <Link to="/properties?location=Lekki%20Phase%201" className="hover:text-white transition-colors">
+                <Link
+                  to="/properties?location=Lekki%20Phase%201"
+                  className="hover:text-white transition-colors"
+                >
                   Lekki Phase 1 & Admiralty
                 </Link>
               </li>
@@ -151,15 +166,30 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom bar - Clean public legal & regulatory strip with zero admin link */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400 text-center sm:text-left">
-          <p>© 2026 Bahams Realty Lagos. All rights reserved.</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
-            <span>RC: {OFFICE_DETAILS.registrationNumber}</span>
-            <span aria-hidden="true">·</span>
-            <span>LASRERA & NIESV Aligned Practice</span>
-            <span aria-hidden="true">·</span>
-            <span>Lagos Land Registry Verified</span>
+        {/* Bottom Legal, RC Number & "Imagined by June Studios" Signature Bar */}
+        <div className="pt-8 pb-4 md:pb-2 lg:pr-44 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-400 text-center md:text-left">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3">
+            <span className="text-neutral-300 font-medium">
+              © 2026 Bahams Realty, Lagos. All rights reserved.
+            </span>
+            <span aria-hidden="true" className="text-neutral-600">
+              ·
+            </span>
+            <span className="font-mono text-neutral-300">
+              RC: {OFFICE_DETAILS.registrationNumber}
+            </span>
+            <span aria-hidden="true" className="hidden sm:inline text-neutral-600">
+              ·
+            </span>
+            <span className="hidden sm:inline">LASRERA & NIESV Aligned Practice</span>
+          </div>
+
+          {/* Special Brand Curation Signature Panel */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900 border border-[#E8D399]/30 text-[#FAFAF8] shadow-xs shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-[#E8D399] shrink-0" />
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-neutral-200">
+              Imagined by <span className="text-[#E8D399] font-bold">June Studios</span>
+            </span>
           </div>
         </div>
       </div>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Deep Emerald Architectural Crest Shield -->
+  <rect width="64" height="64" rx="14" fill="#0F5C4A"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="11" stroke="#D4AF37" stroke-opacity="0.55" stroke-width="1.2"/>
+  
+  <!-- Subtle Afrocentric / Adire Diamond Crown Motif -->
+  <path d="M32 9L36.5 13.5L32 18L27.5 13.5L32 9Z" stroke="#E8D399" stroke-width="1.4" fill="#0B4638"/>
+  <circle cx="32" cy="13.5" r="1.4" fill="#E8D399"/>
+
+  <!-- Architectural Roofline & Pillars -->
+  <path d="M14 29L32 17L50 29" stroke="#FAFAF8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19 26.5V48H45V26.5" stroke="#FAFAF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Monogram B R Pillar Linework -->
+  <path d="M25 32V44M25 32H29.5C31.2 32 32.2 33 32.2 34.6C32.2 36 31.2 37.2 29.5 37.2H25M25 37.2H30C31.8 37.2 32.8 38.3 32.8 40.5C32.8 42.6 31.6 44 29.5 44H25" stroke="#E8D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M35.5 44V32H39.5C41.3 32 42.4 33.1 42.4 35C42.4 36.8 41.3 38 39.5 38H35.5M39 38L42.5 44" stroke="#FAFAF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Foundation Line -->
+  <line x1="13" y1="52" x2="51" y2="52" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

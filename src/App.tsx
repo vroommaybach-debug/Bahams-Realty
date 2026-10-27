@@ -12,6 +12,7 @@ import { Footer } from './components/layout/Footer.tsx';
 import { WhatsAppButton } from './components/common/WhatsAppButton.tsx';
 import { InspectionModal } from './components/inspection/InspectionModal.tsx';
 import { MobileBottomNav } from './components/layout/MobileBottomNav.tsx';
+import { SEOHead } from './components/common/SEOHead.tsx';
 
 // Pages
 import { HomePage } from './pages/HomePage.tsx';
@@ -41,6 +42,7 @@ export default function App() {
       <DataProvider>
         <UIProvider>
           <ScrollToTop />
+          <SEOHead />
           <div className="min-h-screen flex flex-col bg-[#FAFAF8] text-[#1A1A1A]">
             {/* Sticky Global Top Bar */}
             <Navbar />

@@ -21,6 +21,11 @@ import {
   SERVICES_DATA,
   TRUST_STATS,
 } from '../data/mockData.ts';
+import {
+  DEFAULT_ADMIN_GATE_SECRET,
+  getActiveAdminGatePassword,
+  setLocalCustomAdminGatePassword,
+} from '../utils/adminAuth.ts';
 
 const PROPERTIES_STORAGE_KEY = 'bahams_realty_properties_v1';
 const DEVELOPMENTS_STORAGE_KEY = 'bahams_realty_developments_v1';
@@ -106,6 +111,10 @@ interface DataContextType {
   toggleFavorite: (propertyId: string) => void;
   isFavorite: (propertyId: string) => boolean;
 
+  adminGatePassword: string;
+  updateAdminGatePassword: (newPassword: string) => void;
+  resetAdminGatePasswordToDefault: () => void;
+
   isFirebaseConnected: boolean;
 }
 
@@ -113,6 +122,9 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(true);
+  const [adminGatePassword, setAdminGatePassword] = useState<string>(() =>
+    getActiveAdminGatePassword()
+  );
 
   // 1. Properties State
   const [properties, setProperties] = useState<Property[]>(() => {
@@ -329,12 +341,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     );
 
+    // 6. Listen for Admin Security Gate Password
+    const adminSecurityRef = doc(db, 'settings', 'adminSecurity');
+    const unsubAdminSecurity = onSnapshot(
+      adminSecurityRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as { gatePassword?: string };
+          if (data.gatePassword && data.gatePassword.trim().length >= 6) {
+            const cleanPass = data.gatePassword.trim();
+            setAdminGatePassword(cleanPass);
+            setLocalCustomAdminGatePassword(cleanPass);
+          }
+        }
+      },
+      (error) => {
+        try {
+          handleFirestoreError(error, OperationType.GET, 'settings/adminSecurity');
+        } catch {
+          // ignore
+        }
+      }
+    );
+
     return () => {
       unsubEnquiries();
       unsubLanding();
       unsubProperties();
       unsubDevelopments();
       unsubServices();
+      unsubAdminSecurity();
     };
   }, []);
 
@@ -631,6 +667,48 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const isFavorite = (propertyId: string) => favorites.includes(propertyId);
 
+  const updateAdminGatePassword = (newPassword: string) => {
+    const cleanPass = newPassword.trim();
+    if (cleanPass.length < 6) return;
+    setAdminGatePassword(cleanPass);
+    setLocalCustomAdminGatePassword(cleanPass);
+
+    setDoc(
+      doc(db, 'settings', 'adminSecurity'),
+      {
+        gatePassword: cleanPass,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    ).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.WRITE, 'settings/adminSecurity');
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
+  const resetAdminGatePasswordToDefault = () => {
+    setAdminGatePassword(DEFAULT_ADMIN_GATE_SECRET);
+    setLocalCustomAdminGatePassword(null);
+
+    setDoc(
+      doc(db, 'settings', 'adminSecurity'),
+      {
+        gatePassword: DEFAULT_ADMIN_GATE_SECRET,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    ).catch((err) => {
+      try {
+        handleFirestoreError(err, OperationType.WRITE, 'settings/adminSecurity');
+      } catch {
+        // local state remains updated
+      }
+    });
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -660,6 +738,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         favorites,
         toggleFavorite,
         isFavorite,
+        adminGatePassword,
+        updateAdminGatePassword,
+        resetAdminGatePasswordToDefault,
         isFirebaseConnected,
       }}
     >

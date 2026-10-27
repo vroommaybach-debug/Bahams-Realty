@@ -94,7 +94,7 @@
     },
     "landingConfig": {
       "title": "LandingConfig",
-      "description": "Landing page CMS configuration, hero photos, headlines, and highlight images",
+      "description": "Landing page CMS configuration, hero photos, headlines, highlight images, and admin gate security settings",
       "type": "object",
       "properties": {
         "heroImage": { "type": "string" },
@@ -104,9 +104,10 @@
         "aboutOfficeImage": { "type": "string" },
         "whyBahamsImage": { "type": "string" },
         "howItWorksImage": { "type": "string" },
-        "featuredHighlightTitle": { "type": "string", "maxLength": 150 }
-      },
-      "required": ["heroImage", "heroHeadline", "heroSubline", "aboutOfficeImage"]
+        "featuredHighlightTitle": { "type": "string", "maxLength": 150 },
+        "gatePassword": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string" }
+      }
     }
   },
   "firestore": {
@@ -128,7 +129,7 @@
     },
     "/settings/{settingId}": {
       "schema": "landingConfig",
-      "description": "Website CMS settings including hero photo and landing highlights"
+      "description": "Website CMS settings including hero photo, landing highlights, and adminSecurity gate password"
     }
   }
 }

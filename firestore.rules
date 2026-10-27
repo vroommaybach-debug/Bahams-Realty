@@ -6,6 +6,10 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
+    function isValidAdminSecurityPayload(data) {
+      return (!('gatePassword' in data) || (data.gatePassword is string && data.gatePassword.size() >= 6 && data.gatePassword.size() <= 128));
+    }
+
     // Properties collection: Public read for property seekers; write permitted for catalog management
     match /properties/{propertyId} {
       allow read: if true;
@@ -31,10 +35,11 @@ service cloud.firestore {
       allow update, delete: if isValidId(enquiryId);
     }
 
-    // Settings / Landing CMS configuration
+    // Settings / Landing CMS configuration & Admin Gate Security (settings/landingConfig and settings/adminSecurity)
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isValidId(settingId);
+      allow create, update: if isValidId(settingId) && isValidAdminSecurityPayload(request.resource.data);
+      allow delete: if isValidId(settingId);
     }
 
     // Default fallback deny
